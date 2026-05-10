@@ -14,6 +14,10 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date() });
 });
 
+app.get('/', (req, res) => {
+  res.json({ status: 'server is running', timestamp: new Date() });
+});
+
 // 404 — no route matched
 app.use((req, res) => res.status(404).json({ error: 'Route not found' }));
 
