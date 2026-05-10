@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: shopapi-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: shopuser
+      POSTGRES_PASSWORD: shoppass
+      POSTGRES_DB: shopdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./src/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shopuser -d shopdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - shopnet
+  api:
+    build: .
+    container_name: shopapi-api
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: shopuser
+      DB_PASSWORD: shoppass
+      DB_NAME: shopdb
+      JWT_SECRET: changeme123
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - shopnet
+
+volumes:
+  pgdata:
+
+networks:
+  shopnet:
+    driver: bridge
